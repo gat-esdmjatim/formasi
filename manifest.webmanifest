@@ -1,0 +1,34 @@
+{
+  "name": "FORMASI — Pengawasan Air Tanah",
+  "short_name": "FORMASI",
+  "description": "Aplikasi pengawasan pemegang izin pengusahaan/penggunaan air tanah — Bidang Geologi dan Air Tanah, Dinas ESDM Provinsi Jawa Timur.",
+  "lang": "id",
+  "dir": "ltr",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0c1b26",
+  "theme_color": "#0c1b26",
+  "categories": ["government", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20192%20192'%3E%3Crect%20width='192'%20height='192'%20rx='38'%20fill='%230e2230'/%3E%3Cpath%20d='M96%2040C96%2040%2054%2082%2054%20114a42%2042%200%200%200%2084%200C138%2082%2096%2040%2096%2040Z'%20fill='%2338bdf8'/%3E%3Cpath%20d='M40%20160h112'%20stroke='%23164e63'%20stroke-width='10'%20stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20rx='102'%20fill='%230e2230'/%3E%3Cpath%20d='M256%20106C256%20106%20144%20218%20144%20304a112%20112%200%200%200%20224%200C368%20218%20256%20106%20256%20106Z'%20fill='%2338bdf8'/%3E%3Cpath%20d='M108%20426h296'%20stroke='%23164e63'%20stroke-width='26'%20stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20width='512'%20height='512'%20fill='%230c1b26'/%3E%3Cpath%20d='M256%20140C256%20140%20160%20236%20160%20308a96%2096%200%200%200%20192%200C352%20236%20256%20140%20256%20140Z'%20fill='%2338bdf8'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

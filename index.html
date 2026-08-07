@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0c1b26">
+  <meta name="robots" content="noindex">
+  <meta name="description" content="FORMASI — aplikasi pengawasan pemegang izin pengusahaan/penggunaan air tanah. Bidang Geologi dan Air Tanah, Dinas ESDM Provinsi Jawa Timur.">
+  <title>FORMASI — Pengawasan Air Tanah | Dinas ESDM Jatim</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FORMASI">
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%230e2230'/%3E%3Cpath%20d='M16%206C16%206%209%2014%209%2019a7%207%200%200%200%2014%200C23%2014%2016%206%2016%206Z'%20fill='%2338bdf8'/%3E%3Cpath%20d='M6%2027h20'%20stroke='%23164e63'%20stroke-width='2'%20stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20180%20180'%3E%3Crect%20width='180'%20height='180'%20fill='%230c1b26'/%3E%3Cpath%20d='M90%2038C90%2038%2050%2078%2050%20108a40%2040%200%200%200%2080%200C130%2078%2090%2038%2090%2038Z'%20fill='%2338bdf8'/%3E%3C/svg%3E">
+
+  <style>
+    :root {
+      --bg: #0c1b26;
+      --bg-deep: #081019;
+      --panel: rgba(18, 44, 60, 0.55);
+      --panel-solid: #0e2230;
+      --accent: #38bdf8;
+      --accent-2: #7fd7ff;
+      --line: rgba(56, 189, 248, 0.22);
+      --muted: #7c9bb0;
+      --text: #e6f2f8;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; background: var(--bg); }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+    /* iframe full-screen; position:fixed menghindari bug tinggi 100vh di iOS Safari */
+    iframe#app {
+      position: fixed; inset: 0; width: 100%; height: 100%; border: 0;
+      background: var(--bg); opacity: 0; transition: opacity .4s ease;
+    }
+    iframe#app.ready { opacity: 1; }
+
+    /* ===== Splash (glassy, tema geologi/air) ===== */
+    #splash {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px;
+      color: var(--text); transition: opacity .45s ease; z-index: 10;
+      padding: 24px; text-align: center;
+      background:
+        radial-gradient(120% 90% at 50% -10%, #12303f 0%, var(--bg) 55%, var(--bg-deep) 100%);
+      overflow: hidden;
+    }
+    /* Tekstur kontur topografi tipis */
+    #splash::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+      background-image:
+        repeating-radial-gradient(circle at 50% 118%, rgba(56,189,248,0.06) 0 1px, transparent 1px 30px);
+    }
+    #splash.hide { opacity: 0; pointer-events: none; }
+    #splash > * { position: relative; }
+
+    .logo {
+      width: 66px; height: 66px; border-radius: 18px;
+      background: linear-gradient(160deg, rgba(20,48,63,0.9), rgba(12,27,38,0.7));
+      border: 1px solid var(--line);
+      display: grid; place-items: center;
+      box-shadow: 0 14px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    }
+    .logo svg { filter: drop-shadow(0 2px 6px rgba(56,189,248,.4)); }
+    .brand { font-size: 23px; font-weight: 700; letter-spacing: .14em; }
+    .brand span { color: var(--accent); }
+    .sub { font-size: 12.5px; color: var(--muted); margin-top: -6px; letter-spacing: .02em; line-height: 1.55; max-width: 320px; }
+
+    .spinner {
+      width: 26px; height: 26px; border: 3px solid rgba(56,189,248,0.18); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Status teks bertahap + tombol bantu bila lambat */
+    .status { font-size: 12px; color: var(--muted); min-height: 16px; letter-spacing: .02em; }
+    .slow-help {
+      display: none; flex-direction: column; align-items: center; gap: 12px; margin-top: 6px;
+      animation: fadeUp .4s ease both;
+    }
+    .slow-help.show { display: flex; }
+    .slow-help p { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 340px; line-height: 1.5; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .btn {
+      appearance: none; cursor: pointer; font: inherit; font-size: 13px; font-weight: 600;
+      color: var(--text); text-decoration: none;
+      padding: 9px 16px; border-radius: 10px; border: 1px solid var(--line);
+      background: linear-gradient(160deg, rgba(56,189,248,0.16), rgba(56,189,248,0.06));
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    }
+    .btn:hover { transform: translateY(-1px); background: linear-gradient(160deg, rgba(56,189,248,0.26), rgba(56,189,248,0.1)); border-color: rgba(56,189,248,0.4); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary { background: linear-gradient(160deg, var(--accent), #22a8e8); color: #05141d; border-color: transparent; }
+    .btn-primary:hover { background: linear-gradient(160deg, var(--accent-2), var(--accent)); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    /* Hormati preferensi kurangi gerak */
+    @media (prefers-reduced-motion: reduce) {
+      .spinner { animation-duration: 2s; }
+      iframe#app, #splash, .slow-help { transition: none; animation: none; }
+    }
+
+    /* ===== Pesan setup (URL belum diisi) ===== */
+    #setup {
+      position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 20;
+      background: radial-gradient(120% 90% at 50% -10%, #12303f 0%, var(--bg) 60%); color: var(--text); padding: 24px;
+    }
+    #setup .card {
+      max-width: 560px; background: linear-gradient(160deg, rgba(18,44,60,0.85), rgba(12,27,38,0.7));
+      border: 1px solid var(--line); border-radius: 16px; padding: 26px 28px; line-height: 1.6; font-size: 14px;
+      box-shadow: 0 20px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06);
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    }
+    #setup h1 { font-size: 17px; margin: 0 0 12px; }
+    #setup code { background: rgba(5,20,29,0.8); border: 1px solid var(--line); padding: 2px 7px; border-radius: 6px; font-size: 12.5px; color: var(--accent); }
+    #setup a { color: var(--accent); }
+    #setup .muted { color: var(--muted); font-size: 12.5px; }
+
+    /* ===== Banner offline ===== */
+    #offline {
+      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%) translateY(80px);
+      z-index: 30; display: flex; align-items: center; gap: 9px;
+      background: rgba(120, 53, 15, 0.92); color: #fff; border: 1px solid rgba(245,158,11,0.5);
+      padding: 10px 16px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,.4); transition: transform .35s cubic-bezier(.22,1,.36,1);
+      -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    }
+    #offline.show { transform: translateX(-50%) translateY(0); }
+    #offline .dot { width: 8px; height: 8px; border-radius: 50%; background: #fbbf24; }
+  </style>
+</head>
+<body>
+  <!-- =====================================================================
+       SATU-SATUNYA yang perlu Anda ubah: tempel URL Web App (diakhiri /exec).
+       Ambil dari Apps Script: Deploy > Manage deployments > salin Web app URL.
+       ===================================================================== -->
+  <script>
+    var EXEC_URL = "GANTI_DENGAN_URL_WEB_APP_ANDA_DIAKHIRI_/exec";
+  </script>
+
+  <div id="splash" role="status" aria-live="polite">
+    <div class="logo">
+      <svg width="36" height="36" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M16 5C16 5 8 14 8 20a8 8 0 0 0 16 0C24 14 16 5 16 5Z" fill="#38bdf8"/>
+        <path d="M6 27h20" stroke="#164e63" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="brand">FORMAS<span>I</span></div>
+    <div class="sub">Pengawasan Pemegang Izin Air Tanah<br>Bidang Geologi dan Air Tanah — Dinas ESDM Jawa Timur</div>
+    <div class="spinner" aria-hidden="true"></div>
+    <div class="status" id="status">Menyiapkan aplikasi…</div>
+
+    <div class="slow-help" id="slowHelp">
+      <p>Server sedang memulai — pemuatan pertama kadang lebih lama. Bila tak kunjung terbuka, coba salah satu:</p>
+      <div class="row">
+        <a class="btn btn-primary" id="openTab" href="#" target="_blank" rel="noopener">Buka di tab baru</a>
+        <button class="btn" id="reload" type="button">Muat ulang</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="setup">
+    <div class="card">
+      <h1>Satu langkah lagi</h1>
+      <p>URL Web App belum diisi. Buka berkas <code>index.html</code>, temukan baris
+        <code>var EXEC_URL = "…"</code>, lalu ganti dengan URL Web App Apps Script Anda
+        (yang diakhiri <code>/exec</code>).</p>
+      <p class="muted">Cara mendapatkannya: di editor Apps Script → <b>Deploy</b> →
+        <b>Manage deployments</b> → salin <b>Web app URL</b>. Simpan perubahan,
+        commit ke GitHub, tunggu ±1 menit, lalu muat ulang halaman ini.</p>
+    </div>
+  </div>
+
+  <iframe id="app" title="FORMASI — Pengawasan Air Tanah"
+          allow="clipboard-write; clipboard-read; fullscreen"
+          referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+  <div id="offline" role="alert">
+    <span class="dot"></span> Tidak ada koneksi internet
+  </div>
+
+  <noscript>
+    <div style="position:fixed;inset:0;display:grid;place-items:center;background:#0c1b26;color:#e6f2f8;font-family:sans-serif;padding:24px;text-align:center">
+      Aktifkan JavaScript pada peramban untuk membuka FORMASI.
+    </div>
+  </noscript>
+
+  <script>
+    (function () {
+      var frame   = document.getElementById('app');
+      var splash  = document.getElementById('splash');
+      var setup   = document.getElementById('setup');
+      var statusEl= document.getElementById('status');
+      var slowHelp= document.getElementById('slowHelp');
+      var openTab = document.getElementById('openTab');
+      var reload  = document.getElementById('reload');
+      var offline = document.getElementById('offline');
+
+      var isPlaceholder = !EXEC_URL || EXEC_URL.indexOf('script.google.com') === -1;
+      var loaded = false;
+      var timers = [];
+
+      // ----- Setup belum lengkap -----
+      if (isPlaceholder) {
+        splash.style.display = 'none';
+        setup.style.display = 'flex';
+        return;
+      }
+
+      // Tombol bantu -> arahkan ke URL yang sama.
+      openTab.href = EXEC_URL;
+      reload.addEventListener('click', function () { location.reload(); });
+
+      // ----- Deteksi koneksi -----
+      function updateOnline() {
+        if (navigator.onLine) { offline.classList.remove('show'); }
+        else { offline.classList.add('show'); }
+      }
+      window.addEventListener('online', updateOnline);
+      window.addEventListener('offline', updateOnline);
+      updateOnline();
+
+      // ----- Muat iframe -----
+      frame.src = EXEC_URL;
+
+      function hideSplash() {
+        splash.classList.add('hide');
+        setTimeout(function () { splash.style.display = 'none'; }, 500);
+      }
+
+      frame.addEventListener('load', function () {
+        loaded = true;
+        timers.forEach(clearTimeout);
+        frame.classList.add('ready');
+        statusEl.textContent = 'Selesai';
+        hideSplash();
+      });
+
+      // Status bertahap agar pengguna tahu proses berjalan.
+      timers.push(setTimeout(function () { if (!loaded) statusEl.textContent = 'Memuat aplikasi…'; }, 2500));
+      timers.push(setTimeout(function () { if (!loaded) statusEl.textContent = 'Menghubungkan ke server…'; }, 6000));
+      timers.push(setTimeout(function () {
+        if (!loaded) {
+          statusEl.textContent = 'Masih memuat — server sedang memulai…';
+          slowHelp.classList.add('show');
+        }
+      }, 9000));
+
+      // Cadangan terakhir: bila 25 detik iframe tetap tak siap, sembunyikan splash
+      // agar apa pun yang termuat tetap terlihat, tombol bantu tetap tersedia.
+      timers.push(setTimeout(function () {
+        if (!loaded) hideSplash();
+      }, 25000));
+    })();
+  </script>
+</body>
+</html>
